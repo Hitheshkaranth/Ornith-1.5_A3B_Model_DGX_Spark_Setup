@@ -1,0 +1,32 @@
+{
+  "model": "qwen3.8-35b-a3b",
+  "gsm8k": {
+    "n": 100,
+    "accuracy": 0.99,
+    "truncated": 0,
+    "avg_tokens": 303.29,
+    "max_tokens": 1251,
+    "wall_secs": 113,
+    "agg_tok_s": 269.2
+  },
+  "math500": {
+    "n": 100,
+    "accuracy": 0.94,
+    "truncated": 6,
+    "avg_tokens": 2263.26,
+    "max_tokens": 16384,
+    "wall_secs": 1357,
+    "agg_tok_s": 166.8
+  },
+  "longform": {
+    "tokens": [
+      29714,
+      32768,
+      3727,
+      16683
+    ],
+    "avg_tokens": 20723.0,
+    "max_tokens": 32768,
+    "hit_cap": 1
+  }
+}

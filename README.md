@@ -248,6 +248,8 @@ requires a bearer key on `/v1/*`).
 
 ### Throughput & MTP Speculative Decoding
 
+![Throughput comparison](benchmarks/throughput_comparison.png)
+
 | Metric | Qwen3.8-35B-A3B (no MTP) | **Ornith-1.5-35B-A3B (this repo, MTP on)** |
 |---|---:|---:|
 | Decode, 1 user | 56.1 tok/s | **82.7 tok/s** (+47%) |
@@ -275,6 +277,8 @@ Method: every request generates exactly 512 tokens (`ignore_eos`), after one war
 Measured with the model card's thinking-mode sampling (`temperature=0.6, top_p=0.95, top_k=20`)
 and 16 requests in flight:
 
+![Reasoning comparison](benchmarks/reasoning_comparison.png)
+
 | Test | **Ornith-1.5-35B-A3B (this repo)** | Qwen3.8-35B-A3B |
 |---|---:|---:|
 | **GSM8K**, first 100 test problems | 98% (98/100) | **99%** (99/100) |
@@ -296,6 +300,8 @@ fewer truncated answers. Raw results:
 options per question, so random guessing scores 10%. Stratified sample of **700 questions** (50
 per category, fixed seed), zero-shot, thinking on, `max_tokens` 16,384, 8 requests in flight
 through the metering gateway.
+
+![Knowledge comparison](benchmarks/knowledge_comparison.png)
 
 | | **Ornith-1.5-35B-A3B (this repo)** | Qwen3.8-35B-A3B |
 |---|---:|---:|
@@ -373,12 +379,18 @@ Ornith-1.5_A3B_Model_DGX_Spark_Setup/
 ├── run.sh                           # builds the image and runs the server on :8004
 ├── benchmarks/
 │   ├── throughput_bench.py          # decode tok/s at N concurrent users
-│   ├── throughput_result.json       # raw results cited above (Ornith vs Qwen3.8)
+│   ├── throughput_result.json       # raw results cited above (Ornith vs Qwen3.8, combined)
+│   ├── throughput_comparison.png    # chart
 │   ├── reasoning_bench.py           # GSM8K / MATH-500 accuracy + long-form length (+ gateway auth)
 │   ├── reasoning_result_ornith.json # raw reasoning results cited above
+│   ├── reasoning_result_qwen38.json # baseline, copied from the Qwen3.8 repo
+│   ├── reasoning_comparison.png     # chart
 │   ├── knowledge_bench.py           # MMLU-Pro accuracy (700-question stratified sample)
 │   ├── knowledge_result_ornith.json # MMLU-Pro summary + per-category scores
-│   └── knowledge_result_ornith.jsonl # MMLU-Pro per-question records (resume log)
+│   ├── knowledge_result_ornith.jsonl # MMLU-Pro per-question records (resume log)
+│   ├── knowledge_result_qwen38.json # baseline, copied from the Qwen3.8 repo
+│   ├── knowledge_comparison.png     # chart
+│   └── make_charts.py               # renders all three PNGs from the JSON results above
 └── assets/
     ├── ornith_logo.png              # from the model card
     ├── ornith_35b_eval.png          # official eval chart, from the model card
