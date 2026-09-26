@@ -1,0 +1,5 @@
+{
+  "sk-owui-REPLACE_WITH_RANDOM": {"user": "openwebui", "client": "openwebui", "forwarded_user": true},
+  "sk-opencode-REPLACE_WITH_RANDOM": {"user": "alice@example.com", "client": "opencode"},
+  "sk-device-laptop-01-REPLACE_WITH_RANDOM": {"user": "laptop-01", "client": "device-laptop-01"}
+}

@@ -13,3 +13,13 @@ __pycache__/
 benchmarks/.cache/
 benchmarks/pipeline*.log
 benchmarks/PIPELINE_COMPLETE
+
+# Gateway secrets and runtime data (generated locally by gateway/setup.sh etc.)
+gateway/keys.json
+gateway/upstream.key
+gateway/usage.db*
+gateway/devices.csv
+gateway/*.csv
+gateway/venv/
+gateway/container-backups/
+*.bak-*

@@ -1,0 +1,49 @@
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: llm-gateway
+    folder: vLLM
+    interval: 1m
+    rules:
+      - uid: llm-gateway-bypass
+        title: vLLM traffic bypassing the metering gateway
+        condition: C
+        for: 5m
+        noDataState: OK
+        execErrState: Alerting
+        annotations:
+          summary: Tokens are reaching vLLM without going through llm-gateway (:8080), so they have no user attribution.
+          description: >-
+            {{ $values.B }} more requests finished in vLLM than llm-gateway sent in the last
+            30 minutes (tolerance 20, matching this deployment's --max-num-seqs). Some client is
+            calling vLLM directly (ports 8000/8002/8004) or the gateway is not metering. vLLM
+            requires the gateway's upstream key, so check for a leaked gateway/upstream.key or a
+            container started without it.
+          runbook_url: https://github.com/Hitheshkaranth/Ornith-1.5_A3B_Model_DGX_Spark_Setup/blob/main/docs/GATEWAY.md
+        labels:
+          severity: warning
+          service: llm-gateway
+        data:
+          - refId: A
+            relativeTimeRange: {from: 1800, to: 0}
+            datasourceUid: prometheus
+            model:
+              refId: A
+              instant: true
+              range: false
+              expr: >-
+                clamp_min(
+                  sum(increase(vllm:request_success_total[30m]))
+                  - (sum(increase(llm_user_requests_total{status=~"ok|client_disconnect"}[30m])) or vector(0)),
+                0)
+          - refId: B
+            datasourceUid: __expr__
+            model: {refId: B, type: reduce, expression: A, reducer: last}
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator: {type: gt, params: [20]}

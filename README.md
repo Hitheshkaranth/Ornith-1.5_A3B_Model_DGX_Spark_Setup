@@ -47,6 +47,7 @@ deployment didn't have:
 - [Quick Start](#quick-start)
 - [Configuration Reference](#configuration-reference)
 - [Hosting on This System](#hosting-on-this-system)
+- [Metering Gateway & Tailscale](#metering-gateway--tailscale)
 - [Vision & PDF Support](#vision--pdf-support)
 - [Benchmarks](#benchmarks)
   - [Throughput & MTP Speculative Decoding](#throughput--mtp-speculative-decoding)
@@ -173,10 +174,9 @@ Recommended sampling: `temperature=0.6, top_p=0.95, top_k=20`. Allow a generous 
 
 ## Hosting on This System
 
-This is how the model is hosted on the DGX Spark, sharing the existing metering gateway and
-monitoring stack that the [Qwen3.8 deployment](https://github.com/Hitheshkaranth/Qwen-3_8_A3B_Model_DGX_Spark_Setup)
-documents in full (`docs/GATEWAY.md` there covers setup, Tailscale keys and gateway operations —
-not duplicated in this repo since it's shared infrastructure, not per-model).
+This is how the model is hosted on the DGX Spark, behind the same metering gateway used by other
+deployments on this box. Full setup, Tailscale keys and gateway operations are in
+[`docs/GATEWAY.md`](docs/GATEWAY.md).
 
 ### Services on the box
 
@@ -223,6 +223,56 @@ Open WebUI persists its default/pinned model in its own sqlite `config` table
 `DEFAULT_MODELS` environment variable once set. Swapping the default model requires updating both
 the systemd unit's env var (for a fresh install) and the existing database (for an already-deployed
 instance) — see [Troubleshooting](#troubleshooting).
+
+## Metering Gateway & Tailscale
+
+Every client, whether Open WebUI, opencode or scripts on laptops across the tailnet, reaches the
+model through a small **metering gateway** on `:8080`. It attributes each request to a user,
+device or app, and counts tokens live. vLLM itself is locked so nothing can go around it.
+
+```mermaid
+flowchart LR
+    D(["Tailnet devices
+one key each"]) == ":8080" ==> GW["llm-gateway
+auth · routing · live metering"]
+    O(["Open WebUI
+forwards user email"]) ==> GW
+    GW == "upstream key" ==> V["vLLM :8004
+localhost + docker bridge
+key required"]
+    GW -.-> P[("Prometheus → Grafana
+per-user · per-device · bypass alert")]
+    D -. "direct → refused" .-x V
+    classDef c fill:#5794F2,stroke:#2D5FA3,color:#fff,stroke-width:2px
+    classDef g fill:#FF9830,stroke:#C46F1F,color:#1a1a1a,stroke-width:2px
+    classDef m fill:#73BF69,stroke:#3F7A39,color:#0a1f08,stroke-width:2px
+    classDef o fill:#8E8E93,stroke:#5A5A5E,color:#fff,stroke-width:2px
+    class D,O c
+    class GW g
+    class V m
+    class P o
+```
+
+```bash
+./gateway/setup.sh                                                        # 1. install the gateway (systemd user service, :8080)
+VLLM_API_KEY=$(cat gateway/upstream.key) BIND_ADDRS="127.0.0.1 172.17.0.1" ./run.sh   # 2. lock vLLM behind it
+cd gateway && venv/bin/python tailscale_keys.py && systemctl --user restart llm-gateway  # 3. one key per tailnet device
+```
+
+Clients then use `http://<server-tailscale-ip-or-name>:8080/v1` with their own key.
+
+| What | Where |
+|---|---|
+| Full setup, client configs (opencode, Open WebUI, SDK), Tailscale (per-device keys, tailnet-only binding, HTTPS via `tailscale serve`, ACLs), operations, troubleshooting | **[`docs/GATEWAY.md`](docs/GATEWAY.md)** |
+| Gateway code and helpers | [`gateway/`](gateway/) |
+| Prometheus scrape snippet, Grafana dashboard, bypass alert | [`monitoring/`](monitoring/) |
+
+Input tokens are counted when a request starts (exact count via vLLM `/tokenize`). Output tokens
+are counted as they stream, or on completion for non-streaming calls. Keys, the upstream secret
+and the usage database are generated locally and never committed. This gateway is shared with the
+[Qwen3.8 deployment](https://github.com/Hitheshkaranth/Qwen-3_8_A3B_Model_DGX_Spark_Setup) on the
+same box — see [What's in `gateway/`](docs/GATEWAY.md#whats-in-gateway) for why the code is
+published in both repos rather than referenced from one.
 
 ## Vision & PDF Support
 
@@ -394,6 +444,16 @@ Ornith-1.5_A3B_Model_DGX_Spark_Setup/
 ├── Dockerfile                       # nvcr vLLM 26.07 base + xgrammar patch
 ├── download.sh                      # fetches the official pre-quantized NVFP4 checkpoint
 ├── run.sh                           # builds the image and runs the server on :8004
+├── gateway/                         # metering gateway (see docs/GATEWAY.md)
+│   ├── gateway.py                   #   auth · routing · live token metering · /metrics
+│   ├── setup.sh                     #   venv + upstream key + systemd user service
+│   ├── add_key.py                   #   issue a key for a user/app
+│   ├── tailscale_keys.py            #   one key per tailnet device (+ CSV to hand out)
+│   └── keys.example.json            #   key file format (real keys.json is git-ignored)
+├── monitoring/
+│   ├── prometheus-scrape.yml        # vllm + llm-gateway scrape jobs
+│   ├── grafana-dashboard.json       # vLLM Command Center (per-user/per-device panels)
+│   └── gateway-bypass-alert.yml     # Grafana alert: traffic bypassing the gateway
 ├── benchmarks/
 │   ├── throughput_bench.py          # decode tok/s at N concurrent users
 │   ├── throughput_result.json       # raw results cited above (Ornith vs Qwen3.8, combined)
@@ -408,16 +468,19 @@ Ornith-1.5_A3B_Model_DGX_Spark_Setup/
 │   ├── knowledge_result_qwen38.json # baseline, copied from the Qwen3.8 repo
 │   ├── knowledge_comparison.png     # chart
 │   └── make_charts.py               # renders all three PNGs from the JSON results above
-└── assets/
-    ├── ornith_logo.png              # from the model card
-    ├── ornith_35b_eval.png          # official eval chart, from the model card
-    └── dgx-spark-banner-new.png     # hardware banner
+├── assets/
+│   ├── ornith_logo.png              # from the model card
+│   ├── ornith_35b_eval.png          # official eval chart, from the model card
+│   └── dgx-spark-banner-new.png     # hardware banner
+└── docs/
+    └── GATEWAY.md                   # metering gateway + Tailscale: setup, clients, ops
 ```
 
-`models/` (the downloaded checkpoint, ~22 GiB) is git-ignored and Docker-ignored. The metering
-gateway and Grafana/Prometheus configs live in the shared
-[`llm-gateway`](https://github.com/Hitheshkaranth/Qwen-3_8_A3B_Model_DGX_Spark_Setup/blob/main/docs/GATEWAY.md)
-setup on this box, not duplicated per model.
+`models/` (the downloaded checkpoint, ~22 GiB) is git-ignored and Docker-ignored. `gateway/` and
+`monitoring/` are a published copy of the same shared infrastructure documented in the
+[Qwen3.8 repo](https://github.com/Hitheshkaranth/Qwen-3_8_A3B_Model_DGX_Spark_Setup) — see
+[What's in `gateway/`](docs/GATEWAY.md#whats-in-gateway) for why it's duplicated rather than
+referenced.
 
 ## Troubleshooting
 
@@ -435,8 +498,9 @@ setup on this box, not duplicated per model.
 
 - Model: [ornith-ai/Ornith-1.5-35B-A3B-NVFP4](https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4) by ornith-ai.
 - Serving engine: [vLLM](https://github.com/vllm-project/vllm), NVIDIA NGC vLLM container.
-- Gateway, monitoring and Open WebUI infrastructure shared with
-  [Qwen-3_8_A3B_Model_DGX_Spark_Setup](https://github.com/Hitheshkaranth/Qwen-3_8_A3B_Model_DGX_Spark_Setup).
+- Metering gateway ([`gateway/`](gateway/), [`docs/GATEWAY.md`](docs/GATEWAY.md)) is a published
+  copy shared with [Qwen-3_8_A3B_Model_DGX_Spark_Setup](https://github.com/Hitheshkaranth/Qwen-3_8_A3B_Model_DGX_Spark_Setup) —
+  one gateway process actually fronts both deployments on this box.
 - Model weights are distributed under **Apache 2.0**; see the
   [model card](https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4) for full terms.
 - This repository's own scripts and config: Apache 2.0.

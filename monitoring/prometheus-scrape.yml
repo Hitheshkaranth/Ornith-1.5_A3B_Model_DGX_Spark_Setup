@@ -1,0 +1,8 @@
+# Add under `scrape_configs:` in prometheus.yml. Assumes Prometheus runs in Docker
+# with `extra_hosts: ["host.docker.internal:host-gateway"]`.
+  - job_name: vllm                     # vLLM /metrics stays open (no key needed)
+    static_configs:
+      - targets: ["host.docker.internal:8004"]
+  - job_name: llm-gateway              # per-user / per-device token counters
+    static_configs:
+      - targets: ["host.docker.internal:8080"]
