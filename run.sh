@@ -12,6 +12,10 @@
 # load. "auto" still picks marlin for the main model's NVFP4 experts on this GPU (no native FP4).
 # GB10 unified-memory box: keep --gpu-memory-utilization <= 0.70 or concurrency collapses,
 # and don't run this alongside another 0.70 container (vllm-qwen38-a3b on :8002, vllm on :8000).
+# Defaults to --restart unless-stopped since this is the active production model on this box.
+# Only ONE 0.70-utilization container should carry unless-stopped at a time -- when swapping to a
+# different model, flip this one to `docker update --restart no vllm-ornith-a3b` first so a reboot
+# doesn't try to bring both up at once.
 # max-num-seqs raised from 16 (Qwen3.8's value) to 20: KV cache logged
 # "Maximum concurrency for 262,144 tokens per request: 19.75x", so there's memory headroom
 # for 20 concurrent sequences even at full context; most real requests use far less.
@@ -38,7 +42,7 @@ docker rm -f "$NAME" 2>/dev/null || true
 
 exec docker run -d \
   --name "$NAME" \
-  --restart "${RESTART:-no}" \
+  --restart "${RESTART:-unless-stopped}" \
   --gpus all \
   --ipc host \
   "${PUBLISH[@]}" \

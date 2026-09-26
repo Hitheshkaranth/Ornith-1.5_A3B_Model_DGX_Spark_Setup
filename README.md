@@ -199,13 +199,22 @@ already done here (`GATEWAY_BACKENDS` includes `:8004`; Prometheus's `vllm` job 
 
 ### Switching models
 
+`run.sh` defaults to `--restart unless-stopped`, since this is the active production model on
+this box — it needs to survive a reboot or crash without manual intervention. **Only one**
+0.70-utilization container should carry that policy at a time, so swap it explicitly:
+
 ```bash
-# stop whatever's running, then:
+# Ornith -> something else
+docker update --restart no vllm-ornith-a3b && docker stop vllm-ornith-a3b
+docker update --restart unless-stopped <other-container> && docker start <other-container>
+
+# something else -> Ornith
+docker update --restart no <other-container> && docker stop <other-container>
 cd Ornith-1.5_A3B_Model_DGX_Spark_Setup && ./run.sh   # ready in ~5 min (weights + MTP drafter + vision tower + compile)
 ```
 
-Only the active container should keep `--restart unless-stopped` (this repo's `run.sh` defaults
-to `--restart no`, matching the "manually swapped" workflow used on this box).
+For a one-off test run that shouldn't affect the production restart policy, override it:
+`RESTART=no ./run.sh`.
 
 ### Open WebUI default model
 
