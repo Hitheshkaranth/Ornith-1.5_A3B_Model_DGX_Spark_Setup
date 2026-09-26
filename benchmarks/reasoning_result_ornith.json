@@ -1,0 +1,32 @@
+{
+  "model": "ornith-1.5-35b-a3b",
+  "gsm8k": {
+    "n": 100,
+    "accuracy": 0.98,
+    "truncated": 0,
+    "avg_tokens": 383.51,
+    "max_tokens": 3630,
+    "wall_secs": 122,
+    "agg_tok_s": 315.5
+  },
+  "math500": {
+    "n": 100,
+    "accuracy": 0.97,
+    "truncated": 3,
+    "avg_tokens": 1937.33,
+    "max_tokens": 16384,
+    "wall_secs": 626,
+    "agg_tok_s": 309.6
+  },
+  "longform": {
+    "tokens": [
+      18175,
+      13322,
+      6952,
+      32768
+    ],
+    "avg_tokens": 17804.25,
+    "max_tokens": 32768,
+    "hit_cap": 1
+  }
+}

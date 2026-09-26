@@ -1,0 +1,69 @@
+{
+  "model": "ornith-1.5-35b-a3b",
+  "benchmark": "MMLU-Pro (TIGER-Lab/MMLU-Pro, test split)",
+  "method": "stratified sample, 50/category x 14 categories, seed 0; zero-shot, thinking on, temperature 0.6 / top_p 0.95 / top_k 20, max_tokens 16384, 8 in flight",
+  "n": 700,
+  "accuracy": 0.8114,
+  "unparsed": 37,
+  "truncated": 37,
+  "avg_tokens": 2272.5,
+  "wall_secs_this_run": 8886,
+  "by_category": {
+    "biology": {
+      "n": 50,
+      "accuracy": 0.92
+    },
+    "business": {
+      "n": 50,
+      "accuracy": 0.84
+    },
+    "chemistry": {
+      "n": 50,
+      "accuracy": 0.9
+    },
+    "computer science": {
+      "n": 50,
+      "accuracy": 0.92
+    },
+    "economics": {
+      "n": 50,
+      "accuracy": 0.92
+    },
+    "engineering": {
+      "n": 50,
+      "accuracy": 0.58
+    },
+    "health": {
+      "n": 50,
+      "accuracy": 0.76
+    },
+    "history": {
+      "n": 50,
+      "accuracy": 0.68
+    },
+    "law": {
+      "n": 50,
+      "accuracy": 0.62
+    },
+    "math": {
+      "n": 50,
+      "accuracy": 0.94
+    },
+    "other": {
+      "n": 50,
+      "accuracy": 0.66
+    },
+    "philosophy": {
+      "n": 50,
+      "accuracy": 0.8
+    },
+    "physics": {
+      "n": 50,
+      "accuracy": 0.94
+    },
+    "psychology": {
+      "n": 50,
+      "accuracy": 0.88
+    }
+  }
+}

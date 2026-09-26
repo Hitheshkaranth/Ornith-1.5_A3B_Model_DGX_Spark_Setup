@@ -1,0 +1,26 @@
+{
+  "date": "2026-09-26",
+  "hardware": "NVIDIA DGX Spark (GB10), 121 GiB unified memory",
+  "vllm": "0.24.0 (nvcr.io/nvidia/vllm:26.07-py3)",
+  "method": "benchmarks/throughput_bench.py: every request generates exactly 512 tokens (ignore_eos), temperature 0.6, one warm-up request. MTP speculative decoding enabled (num_speculative_tokens=1), via the metering gateway (:8080).",
+  "results": {
+    "ornith-1.5-35b-a3b (this repo, MTP on)": {
+      "users_1": {"aggregate_tok_s": 82.7, "per_user_tok_s": 82.8},
+      "users_16": {"aggregate_tok_s": 351.7, "per_user_tok_s": 22.6},
+      "kv_cache_tokens": 5287874,
+      "max_concurrency_262k": 20.17,
+      "weights_gib": 21.81,
+      "weight_load_s": 127,
+      "cold_start_to_ready_s": 290
+    },
+    "qwen3.8-35b-a3b (previous repo, no MTP)": {
+      "users_1": {"aggregate_tok_s": 56.1, "per_user_tok_s": 56.1},
+      "users_16": {"aggregate_tok_s": 372.7, "per_user_tok_s": 23.3},
+      "kv_cache_tokens": 6049171,
+      "max_concurrency_262k": 23.08,
+      "weights_gib": 20.23,
+      "weight_load_s": 131,
+      "cold_start_to_ready_s": 258
+    }
+  }
+}

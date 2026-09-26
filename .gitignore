@@ -1,0 +1,15 @@
+# Weights (~22 GiB, official pre-quantized NVFP4) are downloaded locally
+models/
+
+# Runtime artifacts
+*.log
+*.pid
+__pycache__/
+
+# Raw benchmark output lands here before being copied into results/
+/results-*.json
+
+# Downloaded benchmark datasets
+benchmarks/.cache/
+benchmarks/pipeline*.log
+benchmarks/PIPELINE_COMPLETE
