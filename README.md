@@ -4,7 +4,7 @@
 
 # Ornith-1.5-35B-A3B (NVFP4 + FP8 + MTP) on NVIDIA DGX Spark (GB10)
 
-**Serve an official 4-bit MoE with multi-token prediction and vision: 20 concurrent users, 262K context, image input**
+**Serve an official 4-bit MoE with multi-token prediction and vision: 20 concurrent users, 262K context, 490 tok/s peak aggregate**
 
 [![Model](https://img.shields.io/badge/model-Ornith--1.5--35B--A3B--NVFP4-blue)](https://huggingface.co/ornith-ai/Ornith-1.5-35B-A3B-NVFP4)
 [![Quant](https://img.shields.io/badge/quant-NVFP4%20experts%20%2B%20FP8%20attn-8A2BE2)](#configuration-reference)
@@ -250,27 +250,35 @@ requires a bearer key on `/v1/*`).
 
 ![Throughput comparison](benchmarks/throughput_comparison.png)
 
-| Metric | Qwen3.8-35B-A3B (no MTP) | **Ornith-1.5-35B-A3B (this repo, MTP on)** |
+| Metric | Qwen3.8-35B-A3B (no MTP, max-num-seqs 16) | **Ornith-1.5-35B-A3B (this repo, MTP on, max-num-seqs 20)** |
 |---|---:|---:|
-| Decode, 1 user | 56.1 tok/s | **82.7 tok/s** (+47%) |
-| Decode, 16 users (aggregate) | 372.7 tok/s | 351.7 tok/s |
-| Decode, 16 users (per user) | 23.3 tok/s | 22.6 tok/s |
+| Decode, 1 user | 56.1 tok/s | **79.0 tok/s** (+41%) |
+| **Peak aggregate decode** | **372.7 tok/s** (at its cap of 16 users) | **490.3 tok/s** (at its cap of 20 users, +32%) |
+| Per-user decode, at peak | 23.3 tok/s | 24.9 tok/s |
 | Checkpoint size | 20.23 GiB | 21.81 GiB |
 | KV cache (fp8) | 6.05M tokens | 5.29M tokens |
 | Max concurrency at 262K context | 23.1x | 20.2x |
 | Cold start to ready | 258 s | 290 s |
 
-MTP gives a large single-stream win (+47% at 1 user) since there's a full model's worth of
-spare decode bandwidth to spend on speculation. The aggregate throughput at 16 users is very
-slightly lower than Qwen3.8's, likely because the drafter's extra forward pass competes for the
-same compute once the batch is already saturating the GPU — a smaller win when there's no slack
-to speculate into. In live production traffic, the SpecDecoding metrics show a consistent
-**~86-88% per-position draft-acceptance rate** (`vllm:spec_decode` / engine logs), meaning the
-1-token draft is right the large majority of the time.
+**Peak token output** was found by sweeping concurrency past each server's own `--max-num-seqs`
+(1 → 16 → 20 → 24 for Ornith). Aggregate throughput peaks exactly at the configured cap — 490.3
+tok/s at 20 concurrent requests — then *drops* to 405.7 tok/s at 24, because the extra requests
+queue (`Waiting > 0`) instead of decoding concurrently, adding scheduling overhead for no
+throughput gain. This confirms `--max-num-seqs 20` (raised from Qwen3.8's 16 after the KV cache
+showed headroom — see [Configuration Reference](#configuration-reference)) is set at the right
+point, not left on the table.
+
+MTP gives a large single-stream win (+41% at 1 user) since there's a full model's worth of spare
+decode bandwidth to spend on speculation, and the higher `--max-num-seqs` gives Ornith a 32%
+higher peak aggregate ceiling than Qwen3.8's, despite MTP's extra per-step drafter overhead. In
+live production traffic, the SpecDecoding metrics show a consistent **~86-88% per-position
+draft-acceptance rate** (`vllm:spec_decode` / engine logs), meaning the 1-token draft is right the
+large majority of the time.
 
 Method: every request generates exactly 512 tokens (`ignore_eos`), after one warm-up request
 ([`throughput_bench.py`](benchmarks/throughput_bench.py) ·
-[`throughput_result.json`](benchmarks/throughput_result.json)).
+[`throughput_result.json`](benchmarks/throughput_result.json), which has the full 1/16/20/24-user
+sweep).
 
 ### Reasoning & Output Length
 

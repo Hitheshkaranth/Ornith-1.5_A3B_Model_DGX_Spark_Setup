@@ -45,14 +45,17 @@ def throughput():
     r = json.load(open(os.path.join(HERE, "throughput_result.json")))["results"]
     a = r["qwen3.8-35b-a3b (previous repo, no MTP)"]
     b = r["ornith-1.5-35b-a3b (this repo, MTP on)"]
+    a_peak = a[f"users_{a['peak_at_users']}"]
+    b_peak = b[f"users_{b['peak_at_users']}"]
     fig, axes = plt.subplots(1, 3, figsize=(13, 4.6))
     bar_panel(axes[0], "Decode speed, 1 user",
               [a["users_1"]["aggregate_tok_s"], b["users_1"]["aggregate_tok_s"]], "{:.1f}", "tokens / s")
-    bar_panel(axes[1], "Aggregate decode, 16 users",
-              [a["users_16"]["aggregate_tok_s"], b["users_16"]["aggregate_tok_s"]], "{:.1f}", "tokens / s")
-    bar_panel(axes[2], "Per-user decode, 16 users",
-              [a["users_16"]["per_user_tok_s"], b["users_16"]["per_user_tok_s"]], "{:.1f}", "tokens / s")
-    fig.suptitle("Throughput on one DGX Spark (GB10) - vLLM 0.24.0, 512 output tokens per request",
+    bar_panel(axes[1], "Peak aggregate decode",
+              [a_peak["aggregate_tok_s"], b_peak["aggregate_tok_s"]], "{:.1f}", "tokens / s")
+    bar_panel(axes[2], "Per-user decode, at peak",
+              [a_peak["per_user_tok_s"], b_peak["per_user_tok_s"]], "{:.1f}", "tokens / s")
+    fig.suptitle(f"Throughput on one DGX Spark (GB10) - vLLM 0.24.0, 512 output tokens per request. "
+                 f"Peak at each server's own --max-num-seqs ({a['peak_at_users']} vs {b['peak_at_users']}).",
                  x=0.01, ha="left", fontsize=13, color=INK)
     fig.tight_layout()
     fig.savefig(os.path.join(HERE, "throughput_comparison.png"), dpi=150)
