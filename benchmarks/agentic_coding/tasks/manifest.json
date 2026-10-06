@@ -1,0 +1,122 @@
+[
+ {
+  "id": "01_lru_ttl",
+  "difficulty": "easy",
+  "tests": 13,
+  "starter_passed": 0
+ },
+ {
+  "id": "02_intervals_bugfix",
+  "difficulty": "medium",
+  "tests": 15,
+  "starter_passed": 4
+ },
+ {
+  "id": "03_expr_evaluator",
+  "difficulty": "hard",
+  "tests": 10,
+  "starter_passed": 0
+ },
+ {
+  "id": "04_csv_parser",
+  "difficulty": "medium",
+  "tests": 17,
+  "starter_passed": 0
+ },
+ {
+  "id": "05_shop_multifile_bugfix",
+  "difficulty": "medium",
+  "tests": 14,
+  "starter_passed": 1
+ },
+ {
+  "id": "06_dijkstra",
+  "difficulty": "easy",
+  "tests": 9,
+  "starter_passed": 0
+ },
+ {
+  "id": "07_token_bucket",
+  "difficulty": "easy",
+  "tests": 10,
+  "starter_passed": 0
+ },
+ {
+  "id": "08_semver",
+  "difficulty": "medium",
+  "tests": 10,
+  "starter_passed": 0
+ },
+ {
+  "id": "09_json_parser",
+  "difficulty": "hard",
+  "tests": 6,
+  "starter_passed": 0
+ },
+ {
+  "id": "10_edit_distance",
+  "difficulty": "medium",
+  "tests": 6,
+  "starter_passed": 0
+ },
+ {
+  "id": "11_calendar_slots",
+  "difficulty": "medium",
+  "tests": 11,
+  "starter_passed": 0
+ },
+ {
+  "id": "12_bank_concurrency_bugfix",
+  "difficulty": "medium",
+  "tests": 7,
+  "starter_passed": 1
+ },
+ {
+  "id": "13_autocomplete_trie",
+  "difficulty": "easy",
+  "tests": 7,
+  "starter_passed": 0
+ },
+ {
+  "id": "14_cron_next_run",
+  "difficulty": "hard",
+  "tests": 14,
+  "starter_passed": 0
+ },
+ {
+  "id": "15_markdown_renderer",
+  "difficulty": "hard",
+  "tests": 10,
+  "starter_passed": 0
+ },
+ {
+  "id": "16_business_days_bugfix",
+  "difficulty": "easy",
+  "tests": 8,
+  "starter_passed": 0
+ },
+ {
+  "id": "17_async_pool",
+  "difficulty": "medium",
+  "tests": 9,
+  "starter_passed": 0
+ },
+ {
+  "id": "18_kv_transactions",
+  "difficulty": "easy",
+  "tests": 8,
+  "starter_passed": 0
+ },
+ {
+  "id": "19_regex_engine",
+  "difficulty": "hard",
+  "tests": 8,
+  "starter_passed": 0
+ },
+ {
+  "id": "20_dependency_resolver",
+  "difficulty": "medium",
+  "tests": 11,
+  "starter_passed": 0
+ }
+]

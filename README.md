@@ -404,7 +404,7 @@ measure — use the throughput benchmark above for that.
 
 ### Agentic Coding: 20 opencode Tasks
 
-![Agentic coding benchmark](benchmarks/agentic_coding_onepage.png)
+![Agentic coding benchmark](benchmarks/agentic_coding/results/report_onepage.png)
 
 Twenty Python programming tasks, each given to its own headless
 [opencode](https://opencode.ai) agent (`opencode run`, thinking on, fresh workspace per task) and
@@ -430,6 +430,11 @@ server. TTFT is measured at a local proxy from request sent to first streamed to
 text or tool call), so it includes queueing and prefill. No agent read the hidden tests or
 reference solutions. Qwen3.8 was not being served during this run, so there is no side-by-side
 yet.
+
+Harness, tasks, hidden tests, raw per-request logs and every agent's final code:
+[`benchmarks/agentic_coding/`](benchmarks/agentic_coding/) (see its README to re-run it, e.g. against
+Qwen3.8). Long-form report: [`report_full.png`](benchmarks/agentic_coding/results/report_full.png) ·
+dashboard: [`benchmark_dashboard.png`](benchmarks/agentic_coding/results/benchmark_dashboard.png).
 
 ## Live Monitoring
 
@@ -497,7 +502,10 @@ Ornith-1.5_A3B_Model_DGX_Spark_Setup/
 │   ├── knowledge_result_ornith.jsonl # MMLU-Pro per-question records (resume log)
 │   ├── knowledge_result_qwen38.json # baseline, copied from the Qwen3.8 repo
 │   ├── knowledge_comparison.png     # chart
-│   ├── agentic_coding_onepage.png   # opencode agentic coding benchmark (20 tasks, hidden tests)
+│   ├── agentic_coding/              # opencode agentic coding benchmark (see its README)
+│   │   ├── harness/                 #   task defs, hidden-test runner, logging proxy, runner, load test, reports
+│   │   ├── tasks/                   #   20 tasks: prompt, starter code, hidden tests, reference solution
+│   │   └── results/                 #   one-page + full report PNGs, metrics, request log, agent solutions
 │   └── make_charts.py               # renders all three PNGs from the JSON results above
 ├── assets/
 │   ├── ornith_logo.png              # from the model card
