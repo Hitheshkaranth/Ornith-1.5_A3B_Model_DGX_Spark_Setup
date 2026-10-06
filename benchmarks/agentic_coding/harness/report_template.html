@@ -1,0 +1,385 @@
+<title>Ornith Agent Benchmark</title>
+<style>
+/* Layout: one centered 980px column of full-width chapters; a bento grid of headline numbers; charts sit on soft tiles. */
+:root {
+  --bg: #fbfbfd;
+  --tile: #f2f2f5;
+  --tile-2: #ffffff;
+  --ink: #1d1d1f;
+  --ink-2: #6e6e73;
+  --ink-3: #8e8e93;
+  --line: #d9d9de;
+  --accent: #0071e3;
+  --accent-soft: rgba(0, 113, 227, 0.12);
+  --good: #1f8a3b;
+  --warn: #b25e00;
+  --mark: #2a78d6;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000; --tile: #161617; --tile-2: #1d1d1f; --ink: #f5f5f7; --ink-2: #a1a1a6; --ink-3: #86868b;
+    --line: #333336; --accent: #2997ff; --accent-soft: rgba(41, 151, 255, 0.16); --good: #30d158; --warn: #ff9f0a;
+    --mark: #3987e5; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000000; --tile: #161617; --tile-2: #1d1d1f; --ink: #f5f5f7; --ink-2: #a1a1a6; --ink-3: #86868b;
+  --line: #333336; --accent: #2997ff; --accent-soft: rgba(41, 151, 255, 0.16); --good: #30d158; --warn: #ff9f0a;
+  --mark: #3987e5; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 17px; line-height: 1.47;
+  -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
+.wrap { max-width: 980px; margin: 0 auto; padding-inline: 22px; }
+nav.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px); background: color-mix(in srgb, var(--bg) 78%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+nav.bar .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 48px; }
+nav.bar b { font-size: 19px; font-weight: 600; letter-spacing: -0.02em; }
+nav.bar .links { display: flex; gap: 22px; font-size: 12px; color: var(--ink-2); }
+nav.bar a { color: inherit; text-decoration: none; }
+nav.bar a:hover, nav.bar a:focus-visible { color: var(--ink); }
+@media (max-width: 640px) { nav.bar .links { display: none; } }
+
+section { padding-block: 96px 24px; }
+.eyebrow { font-size: 19px; font-weight: 600; color: var(--warn); letter-spacing: -0.01em; margin: 0 0 6px; }
+h1 { font-size: clamp(48px, 9vw, 96px); line-height: 1.04; font-weight: 700; letter-spacing: -0.035em; margin: 0; text-wrap: balance; }
+h2 { font-size: clamp(36px, 6vw, 56px); line-height: 1.07; font-weight: 700; letter-spacing: -0.03em; margin: 0 0 14px; text-wrap: balance; }
+.lede { font-size: clamp(19px, 2.4vw, 24px); line-height: 1.38; color: var(--ink-2); font-weight: 500; max-width: 34em; margin: 18px 0 0; text-wrap: pretty; }
+.lede strong { color: var(--ink); font-weight: 600; }
+.hero { padding-block: 88px 8px; text-align: center; }
+.hero .lede { margin-inline: auto; }
+.hero .score { font-size: clamp(120px, 26vw, 260px); font-weight: 700; letter-spacing: -0.06em; line-height: 0.9; margin: 34px 0 0;
+  background: linear-gradient(180deg, var(--ink) 30%, color-mix(in srgb, var(--accent) 70%, var(--ink)) 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent; font-variant-numeric: tabular-nums; }
+.hero .score small { font-size: 0.32em; letter-spacing: -0.03em; color: var(--ink-2); -webkit-text-fill-color: var(--ink-2); }
+.hero .caption { color: var(--ink-3); font-size: 14px; margin-top: 10px; }
+
+.bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-top: 56px; }
+.tile { background: var(--tile); border-radius: 28px; padding: 30px 30px 28px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.tile .k { font-size: 14px; font-weight: 600; color: var(--ink-2); }
+.tile .v { font-size: clamp(40px, 6vw, 64px); font-weight: 700; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.tile .v .u { font-size: 0.42em; letter-spacing: -0.02em; font-weight: 600; color: var(--ink-2); margin-left: 4px; }
+.tile .d { font-size: 14px; color: var(--ink-2); line-height: 1.4; margin-top: auto; padding-top: 10px; }
+.t-a { grid-column: span 3; } .t-b { grid-column: span 3; } .t-c { grid-column: span 2; } .t-d { grid-column: span 2; } .t-e { grid-column: span 2; }
+.tile.accent .v { color: var(--accent); }
+@media (max-width: 760px) { .bento { grid-template-columns: 1fr 1fr; } .t-a, .t-b { grid-column: span 2; } .t-c, .t-d, .t-e { grid-column: span 1; } .t-e { grid-column: span 2; } }
+
+.panel { background: var(--tile); border-radius: 28px; padding: 28px 28px 22px; margin-top: 40px; min-width: 0; }
+.panel h3 { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
+.panel p.sub { margin: 4px 0 14px; color: var(--ink-2); font-size: 15px; }
+.chart { position: relative; width: 100%; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { fill: var(--ink-2); font-family: var(--font); }
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.duo .panel { margin-top: 40px; }
+@media (max-width: 760px) { .duo { grid-template-columns: 1fr; } .duo .panel + .panel { margin-top: 14px; } }
+
+.tip { position: absolute; pointer-events: none; background: var(--tile-2); color: var(--ink); border-radius: 12px; padding: 8px 11px;
+  font-size: 12.5px; line-height: 1.35; box-shadow: 0 6px 24px rgba(0,0,0,.14), 0 0 0 1px var(--line); white-space: nowrap;
+  transform: translate(-50%, calc(-100% - 12px)); opacity: 0; transition: opacity .12s; z-index: 5; font-variant-numeric: tabular-nums; }
+.tip b { font-weight: 600; }
+.tip.on { opacity: 1; }
+
+/* task list */
+.tasks { margin-top: 40px; background: var(--tile); border-radius: 28px; padding: 8px 0; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; min-width: 680px; font-variant-numeric: tabular-nums; }
+th { text-align: left; font-size: 12px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; padding: 16px 14px 10px; }
+td { padding: 13px 14px; border-top: 1px solid var(--line); font-size: 15px; vertical-align: middle; }
+th:first-child, td:first-child { padding-left: 28px; } th:last-child, td:last-child { padding-right: 28px; }
+td.name { font-weight: 600; letter-spacing: -0.01em; }
+td.name span { display: block; font-weight: 400; color: var(--ink-3); font-size: 12px; font-family: var(--mono); letter-spacing: 0; }
+td.num, th.num { text-align: right; }
+.chip { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
+.chip.medium { background: color-mix(in srgb, var(--ink-2) 14%, transparent); color: var(--ink-2); }
+.chip.hard { background: color-mix(in srgb, var(--warn) 15%, transparent); color: var(--warn); }
+.meter { display: flex; align-items: center; gap: 10px; }
+.meter i { flex: 1; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--ink-3) 25%, transparent); position: relative; overflow: hidden; min-width: 60px; }
+.meter i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--good); border-radius: 3px; }
+.meter.miss i::after { background: var(--warn); }
+.meter em { font-style: normal; font-size: 14px; min-width: 42px; text-align: right; }
+.state { font-size: 13px; font-weight: 600; color: var(--good); white-space: nowrap; }
+.state.miss { color: var(--warn); }
+
+.notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 40px; }
+.note { background: var(--tile); border-radius: 24px; padding: 26px; min-width: 0; }
+.note h4 { margin: 0 0 8px; font-size: 17px; font-weight: 600; letter-spacing: -0.015em; }
+.note p { margin: 0; color: var(--ink-2); font-size: 15px; line-height: 1.5; }
+.note code { font-family: var(--mono); font-size: 13px; }
+@media (max-width: 760px) { .notes { grid-template-columns: 1fr; } }
+
+.next { margin-top: 40px; border-radius: 28px; padding: 44px 36px; text-align: center;
+  background: radial-gradient(120% 140% at 50% 0%, var(--accent-soft), transparent 70%), var(--tile); }
+.next h3 { font-size: clamp(28px, 4vw, 40px); letter-spacing: -0.03em; margin: 0 0 10px; font-weight: 700; }
+.next p { color: var(--ink-2); margin: 0 auto; max-width: 36em; }
+.next code { display: inline-block; margin-top: 18px; font-family: var(--mono); font-size: 13.5px; background: var(--tile-2); padding: 10px 16px;
+  border-radius: 12px; color: var(--ink); max-width: 100%; overflow-x: auto; white-space: nowrap; }
+footer { padding-block: 56px 72px; color: var(--ink-3); font-size: 12px; border-top: 1px solid var(--line); margin-top: 96px; }
+footer p { margin: 0 0 6px; max-width: 70em; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 4px; }
+@media (prefers-reduced-motion: no-preference) {
+  .hero .score { animation: rise 1s cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes rise { from { transform: translateY(18px); opacity: .25; } to { transform: none; opacity: 1; } }
+}
+</style>
+
+<nav class="bar" aria-label="Sections">
+  <div class="wrap">
+    <b>Ornith Benchmark</b>
+    <div class="links"><a href="#results">Results</a><a href="#tasks">Tasks</a><a href="#speed">Speed</a><a href="#load">Under load</a><a href="#tokens">Tokens</a><a href="#method">Method</a></div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <header class="hero" id="results">
+    <p class="eyebrow">Ornith 1.5 · 35B-A3B</p>
+    <h1>Twenty coding tasks.<br>One agent each.</h1>
+    <p class="lede">Every task ran headless in <strong>opencode</strong> and was graded by hidden unit tests the agent never saw.</p>
+    <div class="score" id="score"></div>
+    <p class="caption">tasks fully solved</p>
+  </header>
+
+  <div class="bento" id="bento"></div>
+
+  <section id="tasks">
+    <h2>Every task, graded.</h2>
+    <p class="lede">From a token bucket to a regex engine with no <code style="font-family:var(--mono);font-size:.8em">re</code> module. The single miss: an empty class <code style="font-family:var(--mono);font-size:.8em">[]</code> was accepted instead of rejected.</p>
+    <div class="tasks"><table id="tasktable"></table></div>
+  </section>
+
+  <section id="speed">
+    <h2>Fast to first token.</h2>
+    <p class="lede">Measured on every one of the agents' requests, with up to eight agents sharing the server.</p>
+    <div class="panel">
+      <h3>Time to first token</h3>
+      <p class="sub">Each dot is one model request. Hover for the task.</p>
+      <div class="chart" id="ttft"></div>
+    </div>
+    <div class="duo">
+      <div class="panel">
+        <h3>Decode speed vs. load</h3>
+        <p class="sub">Output tokens per second for one stream.</p>
+        <div class="chart" id="rate"></div>
+      </div>
+      <div class="panel">
+        <h3>Requests in flight</h3>
+        <p class="sub">Concurrent requests at the server over the run.</p>
+        <div class="chart" id="inflight"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="load">
+    <h2>Twenty at once.</h2>
+    <p class="lede">A separate load test: 20 streams, each with a 38k-token prompt and exactly 512 output tokens. A warm prefix cache is the difference between seconds and minutes.</p>
+    <div class="duo">
+      <div class="panel">
+        <h3>Median time to first token</h3>
+        <p class="sub">Seconds, lower is better.</p>
+        <div class="chart" id="lt-ttft"></div>
+      </div>
+      <div class="panel">
+        <h3>Decode speed per stream</h3>
+        <p class="sub">Tokens per second. Whole-server total underneath.</p>
+        <div class="chart" id="lt-rate"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tokens">
+    <h2>Where the tokens went.</h2>
+    <p class="lede" id="tokenlede"></p>
+    <div class="panel">
+      <h3>Output tokens per task</h3>
+      <p class="sub">Includes reasoning. Hover for requests, time and prompt volume.</p>
+      <div class="chart" id="outtok"></div>
+    </div>
+  </section>
+
+  <section id="method">
+    <h2>How it was tested.</h2>
+    <div class="notes">
+      <div class="note"><h4>The tasks</h4><p>20 Python tasks: 14 build from a written spec, 6 fix bugs in existing code (multi-file, concurrency, dates). 203 hidden <code>unittest</code> cases, all passed by a reference solution first.</p></div>
+      <div class="note"><h4>The agents</h4><p><code>opencode run</code> with the user's normal config, thinking on, one fresh workspace per task. Eight agents ran at a time because each opencode process needs about 600 MB of RAM.</p></div>
+      <div class="note"><h4>The measurements</h4><p>A local proxy timed every request. TTFT runs from request sent to first streamed token (reasoning, text or tool call), so it includes queueing and prefill.</p></div>
+      <div class="note"><h4>The server</h4><p>vLLM on spark-ba51 through the :8080 gateway. This is not the Q6 GGUF with Q8 KV cache that produced the poor results, so quantization effects are not covered.</p></div>
+      <div class="note"><h4>Integrity</h4><p>No agent read the hidden tests or reference solutions. All 491 tool calls stayed inside each agent's own workspace.</p></div>
+      <div class="note"><h4>Scope</h4><p>Self-contained, well-specified tasks. Large codebases with vague tickets are harder and were not tested.</p></div>
+    </div>
+    <div class="next">
+      <h3>Next: Qwen 3.8 27B.</h3>
+      <p>The head-to-head is still open. Qwen was not being served during this run. Bring it up and the same 20 tasks run unchanged.</p>
+      <code>python harness/run_bench.py --label qwen --model-key &lt;id&gt; --upstream &lt;url&gt; --parallel 8</code>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p id="foot"></p>
+    <p>Data: results/summary.json, results/per_task.csv, results/ornith/requests.jsonl, results/ornith/loadtest.json.</p>
+  </div>
+</footer>
+
+<script>
+const D = /*__DATA__*/null;
+const S = D.summary;
+const $ = (s) => document.querySelector(s);
+const fmt = (n, d = 0) => n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+const nice = (s) => s.replace(/^\d+_/, "").replace(/_/g, " ").replace(/\b(lru|ttl|csv|kv|json)\b/g, (m) => m.toUpperCase());
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+
+/* hero + bento */
+$("#score").innerHTML = `${S.solved}<small>/${S.n_tasks}</small>`;
+const lt20w = D.loadtest.find((r) => r.concurrency === 20 && r.cache === "warm");
+const tiles = [
+  ["t-a accent", "Hidden tests passed", `${S.tests_passed}<span class="u">/ ${S.tests_total}</span>`, `${fmt(100 * S.tests_passed / S.tests_total, 1)}% across easy, medium and hard tasks.`],
+  ["t-b", "Time to first token", `${fmt(S.ttft_s.p50, 2)}<span class="u">s</span>`, `Median over ${S.requests} agent requests. p90 ${fmt(S.ttft_s.p90, 2)} s, p99 ${fmt(S.ttft_s.p99, 2)} s.`],
+  ["t-c", "Single stream", `${fmt(D.loadtest.find((r) => r.concurrency === 1 && r.cache === "warm").per_stream_tok_s_p50)}<span class="u">tok/s</span>`, "Decode speed with the server to itself."],
+  ["t-d", "Twenty streams", `${fmt(lt20w.aggregate_tok_s)}<span class="u">tok/s</span>`, `Total output, ${fmt(lt20w.per_stream_tok_s_p50)} tok/s each, warm cache.`],
+  ["t-e", "Tokens consumed", `${fmt(S.total_tokens / 1e6, 1)}<span class="u">M</span>`, `${fmt(S.completion_tokens / 1e3)}k generated, the rest is resent context.`],
+];
+$("#bento").innerHTML = tiles.map(([c, k, v, d]) => `<div class="tile ${c}"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
+
+/* task table */
+const mins = (s) => (s < 60 ? `${fmt(s)} s` : `${fmt(s / 60, 1)} min`);
+$("#tasktable").innerHTML = `<thead><tr><th>Task</th><th>Level</th><th>Hidden tests</th><th class="num">Time</th><th class="num">Requests</th><th class="num">Output</th><th>Result</th></tr></thead><tbody>` +
+  D.tasks.map((t) => {
+    const ok = t.passed === t.tests, w = (100 * t.passed / t.tests).toFixed(1);
+    const kind = t.starter !== undefined && t.id.includes("bugfix") ? "bug fix" : "from spec";
+    return `<tr><td class="name">${nice(t.id)}<span>${t.id.slice(0, 2)} · ${kind}</span></td><td><span class="chip ${t.difficulty}">${t.difficulty}</span></td>` +
+      `<td><div class="meter ${ok ? "" : "miss"}" style="--w:${w}%"><i></i><em>${t.passed}/${t.tests}</em></div></td>` +
+      `<td class="num">${mins(t.wall)}</td><td class="num">${t.requests}</td><td class="num">${fmt(t.out / 1000, 1)}k</td>` +
+      `<td><span class="state ${ok ? "" : "miss"}">${ok ? "✓ Solved" : "Partial"}</span></td></tr>`;
+  }).join("") + "</tbody>";
+
+$("#tokenlede").textContent = `${fmt(S.prompt_tokens / 1e6, 1)} million prompt tokens went in, mostly the same growing context resent on each turn. ` +
+  `${fmt(S.completion_tokens / 1e3)}k tokens came out, reasoning included. The regex engine and JSON parser took the most work.`;
+$("#foot").textContent = `Run of ${fmt(S.run_wall_s / 60, 1)} minutes · ${S.requests} model requests · peak ${S.peak_inflight} in flight · upstream ${S.upstream}.`;
+
+/* ---------- tiny SVG chart kit ---------- */
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+function ticks(max, n = 5) {
+  const raw = max / n, p = Math.pow(10, Math.floor(Math.log10(raw))), m = raw / p;
+  const step = (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p;
+  const out = []; for (let v = 0; v <= max + 1e-9; v += step) out.push(+v.toFixed(6)); return out;
+}
+function frame(box, { h, xMax, yMax, xLabel, yLabel, padL = 44, padB = 38, xTicks, yTicks }) {
+  box.innerHTML = "";
+  const w = Math.max(280, box.clientWidth), padT = 10, padR = 12;
+  const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img" }, box);
+  const X = (v) => padL + (v / xMax) * (w - padL - padR), Y = (v) => h - padB - (v / yMax) * (h - padB - padT);
+  const grid = css("--line"), ink3 = css("--ink-3");
+  (yTicks || ticks(yMax)).forEach((v) => {
+    el("line", { x1: padL, x2: w - padR, y1: Y(v), y2: Y(v), stroke: grid, "stroke-width": 1, "stroke-dasharray": v ? "2 4" : "" }, svg);
+    el("text", { x: padL - 8, y: Y(v) + 4, "text-anchor": "end", "font-size": 11 }, svg).textContent = fmt(v, v % 1 ? 1 : 0);
+  });
+  if (xTicks !== false) (xTicks || ticks(xMax)).forEach((v) => {
+    el("text", { x: X(v), y: h - padB + 18, "text-anchor": "middle", "font-size": 11 }, svg).textContent = fmt(v, v % 1 ? 1 : 0);
+  });
+  if (xLabel) el("text", { x: padL + (w - padL - padR) / 2, y: h - 4, "text-anchor": "middle", "font-size": 11.5, fill: ink3 }, svg).textContent = xLabel;
+  if (yLabel) el("text", { x: 12, y: padT + (h - padB - padT) / 2, "text-anchor": "middle", "font-size": 11.5, fill: ink3,
+    transform: `rotate(-90 12 ${padT + (h - padB - padT) / 2})` }, svg).textContent = yLabel;
+  return { svg, X, Y, w, h, padL, padR, padB, padT };
+}
+function tipFor(box) { let t = box.querySelector(".tip"); if (!t) { t = document.createElement("div"); t.className = "tip"; box.appendChild(t); } return t; }
+function showTip(box, svgX, svgY, w, html) {
+  const t = tipFor(box), s = box.clientWidth / w;
+  t.innerHTML = html; t.style.left = Math.min(Math.max(svgX * s, 80), box.clientWidth - 80) + "px"; t.style.top = svgY * s + "px"; t.classList.add("on");
+}
+function hideTip(box) { tipFor(box).classList.remove("on"); }
+
+/* nearest-point hover on a scatter */
+function scatter(box, pts, opt) {
+  const f = frame(box, opt), mark = css("--mark"), surf = css("--tile");
+  const g = el("g", {}, f.svg);
+  pts.forEach((p) => el("circle", { cx: f.X(p.x), cy: f.Y(p.y), r: 3.6, fill: mark, "fill-opacity": 0.5 }, g));
+  if (opt.median != null) {
+    el("line", { x1: f.padL, x2: f.w - f.padR, y1: f.Y(opt.median), y2: f.Y(opt.median), stroke: css("--ink"), "stroke-width": 1.5, "stroke-dasharray": "5 4" }, f.svg);
+    el("text", { x: f.w - f.padR, y: f.Y(opt.median) - 7, "text-anchor": "end", "font-size": 11.5, "font-weight": 600, fill: css("--ink") }, f.svg).textContent = opt.medianLabel;
+  }
+  const hl = el("circle", { r: 6, fill: mark, stroke: surf, "stroke-width": 2, opacity: 0 }, f.svg);
+  const hit = el("rect", { x: f.padL, y: f.padT, width: f.w - f.padL - f.padR, height: f.h - f.padB - f.padT, fill: "transparent" }, f.svg);
+  hit.addEventListener("pointermove", (e) => {
+    const r = f.svg.getBoundingClientRect(), sx = (e.clientX - r.left) * (f.w / r.width), sy = (e.clientY - r.top) * (f.w / r.width);
+    let best = null, bd = 1e9;
+    for (const p of pts) { const dx = f.X(p.x) - sx, dy = f.Y(p.y) - sy, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = p; } }
+    if (!best || bd > 900) { hl.setAttribute("opacity", 0); hideTip(box); return; }
+    hl.setAttribute("cx", f.X(best.x)); hl.setAttribute("cy", f.Y(best.y)); hl.setAttribute("opacity", 1);
+    showTip(box, f.X(best.x), f.Y(best.y), f.w, opt.tip(best));
+  });
+  hit.addEventListener("pointerleave", () => { hl.setAttribute("opacity", 0); hideTip(box); });
+}
+
+function drawTTFT() {
+  const pts = D.reqs.map((r) => ({ x: r.t, y: r.ttft, r }));
+  const xMax = Math.ceil(Math.max(...pts.map((p) => p.x)) / 10) * 10, yMax = Math.ceil(Math.max(...pts.map((p) => p.y)));
+  scatter($("#ttft"), pts, { h: 300, xMax, yMax, xLabel: "minutes into the run", yLabel: "seconds", median: S.ttft_s.p50,
+    medianLabel: `median ${fmt(S.ttft_s.p50, 2)} s`,
+    tip: (p) => `<b>${nice(p.r.task)}</b><br>TTFT ${fmt(p.r.ttft, 2)} s · ${p.r.load} in flight<br>${fmt(p.r.out)} tokens out` });
+}
+function drawRate() {
+  const pts = D.reqs.filter((r) => r.rate).map((r) => ({ x: r.load + (((r.t * 997) % 1) - 0.5) * 0.35, y: r.rate, r }));
+  scatter($("#rate"), pts, { h: 280, xMax: 9, yMax: 90, xTicks: [1, 2, 3, 4, 5, 6, 7, 8], xLabel: "requests in flight", yLabel: "tok/s",
+    tip: (p) => `<b>${fmt(p.r.rate, 1)} tok/s</b><br>${p.r.load} in flight · ${nice(p.r.task)}` });
+}
+function drawInflight() {
+  const box = $("#inflight"), ev = D.inflight;
+  const xMax = Math.ceil(ev[ev.length - 1][0] / 10) * 10;
+  const f = frame(box, { h: 280, xMax, yMax: 9, yTicks: [0, 2, 4, 6, 8], xLabel: "minutes into the run", yLabel: "requests" });
+  let cur = 0, d = `M${f.X(0)},${f.Y(0)}`;
+  for (const [t, dd] of ev) { d += `L${f.X(t)},${f.Y(cur)}`; cur += dd; d += `L${f.X(t)},${f.Y(cur)}`; }
+  const mark = css("--mark");
+  el("path", { d: d + `L${f.X(ev[ev.length - 1][0])},${f.Y(0)}Z`, fill: mark, "fill-opacity": 0.14, stroke: "none" }, f.svg);
+  el("path", { d, fill: "none", stroke: mark, "stroke-width": 1.5, "stroke-linejoin": "round" }, f.svg);
+}
+function bars(box, items, { h, yLabel, valueFmt, subFmt }) {
+  const yMax = Math.max(...items.map((i) => i.v)) * 1.22;
+  const f = frame(box, { h, xMax: 1, yMax, xTicks: false, padB: 48, yLabel });
+  const n = items.length, slot = (f.w - f.padL - f.padR) / n, bw = Math.min(64, slot * 0.56), mark = css("--mark"), ink = css("--ink");
+  items.forEach((it, i) => {
+    const cx = f.padL + slot * (i + 0.5), y = f.Y(it.v), y0 = f.Y(0), hgt = Math.max(1, y0 - y), r = Math.min(4, hgt);
+    el("path", { d: `M${cx - bw / 2},${y0}V${y + r}Q${cx - bw / 2},${y} ${cx - bw / 2 + r},${y}H${cx + bw / 2 - r}Q${cx + bw / 2},${y} ${cx + bw / 2},${y + r}V${y0}Z`,
+      fill: mark, "fill-opacity": it.cold ? 0.45 : 1 }, f.svg);
+    el("text", { x: cx, y: y - (subFmt ? 22 : 8), "text-anchor": "middle", "font-size": 13, "font-weight": 600, fill: ink }, f.svg).textContent = valueFmt(it);
+    if (subFmt) el("text", { x: cx, y: y - 8, "text-anchor": "middle", "font-size": 10.5 }, f.svg).textContent = subFmt(it);
+    el("text", { x: cx, y: f.h - f.padB + 18, "text-anchor": "middle", "font-size": 11, fill: ink }, f.svg).textContent = it.a;
+    el("text", { x: cx, y: f.h - f.padB + 32, "text-anchor": "middle", "font-size": 10.5 }, f.svg).textContent = it.b;
+  });
+}
+function drawLoad() {
+  const order = [[1, "warm"], [8, "warm"], [20, "warm"], [1, "cold"], [20, "cold"]];
+  const items = order.map(([c, k]) => { const r = D.loadtest.find((x) => x.concurrency === c && x.cache === k);
+    return { a: `${c} stream${c > 1 ? "s" : ""}`, b: `${k} cache`, cold: k === "cold", r }; });
+  bars($("#lt-ttft"), items.map((i) => ({ ...i, v: i.r.ttft_p50 })), { h: 300, yLabel: "seconds", valueFmt: (i) => `${fmt(i.v, i.v < 10 ? 1 : 0)} s` });
+  bars($("#lt-rate"), items.map((i) => ({ ...i, v: i.r.per_stream_tok_s_p50 })), { h: 300, yLabel: "tok/s per stream",
+    valueFmt: (i) => fmt(i.v), subFmt: (i) => `${fmt(i.r.aggregate_tok_s)} total` });
+}
+function drawTokens() {
+  const box = $("#outtok"), ts = [...D.tasks].sort((a, b) => b.out - a.out);
+  box.innerHTML = "";
+  const w = Math.max(280, box.clientWidth), row = 26, padL = Math.min(200, w * 0.42), padR = 64, h = ts.length * row + 8;
+  const svg = el("svg", { viewBox: `0 0 ${w} ${h}`, role: "img" }, box);
+  const max = ts[0].out, X = (v) => padL + (v / max) * (w - padL - padR), mark = css("--mark"), ink = css("--ink");
+  ts.forEach((t, i) => {
+    const y = i * row + 4, bh = 14, x1 = X(t.out), r = Math.min(4, x1 - padL);
+    el("text", { x: padL - 10, y: y + 11.5, "text-anchor": "end", "font-size": 12.5, fill: ink }, svg).textContent = nice(t.id);
+    el("path", { d: `M${padL},${y}H${x1 - r}Q${x1},${y} ${x1},${y + r}V${y + bh - r}Q${x1},${y + bh} ${x1 - r},${y + bh}H${padL}Z`, fill: mark }, svg);
+    el("text", { x: x1 + 8, y: y + 11.5, "font-size": 11.5 }, svg).textContent = `${fmt(t.out / 1000, 1)}k`;
+    const hit = el("rect", { x: 0, y: y - 5, width: w, height: row, fill: "transparent" }, svg);
+    hit.addEventListener("pointerenter", () => showTip(box, x1, y, w,
+      `<b>${nice(t.id)}</b><br>${fmt(t.out)} output · ${fmt(t.prompt / 1e6, 2)}M prompt<br>${t.requests} requests · ${mins(t.wall)}`));
+    hit.addEventListener("pointerleave", () => hideTip(box));
+  });
+}
+
+function drawAll() { drawTTFT(); drawRate(); drawInflight(); drawLoad(); drawTokens(); }
+drawAll();
+let rt; addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(drawAll, 120); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawAll);
+new MutationObserver(drawAll).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+</script>

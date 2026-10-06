@@ -53,6 +53,7 @@ deployment didn't have:
   - [Throughput & MTP Speculative Decoding](#throughput--mtp-speculative-decoding)
   - [Reasoning & Output Length](#reasoning--output-length)
   - [Knowledge: MMLU-Pro](#knowledge-mmlu-pro)
+  - [Agentic Coding: 20 opencode Tasks](#agentic-coding-20-opencode-tasks)
 - [Live Monitoring](#live-monitoring)
 - [Client Usage](#client-usage)
 - [Repository Layout](#repository-layout)
@@ -401,6 +402,40 @@ wall time interleaved with three server restarts (for MTP, vision, and the max-n
 and live user traffic sharing the same concurrency slots, so the wall-clock figure isn't a speed
 measure — use the throughput benchmark above for that.
 
+### Agentic Coding: 20 opencode Tasks
+
+![Agentic coding benchmark](benchmarks/agentic_coding/results/report_onepage.png)
+
+Twenty Python programming tasks, each given to its own headless
+[opencode](https://opencode.ai) agent (`opencode run`, thinking on, fresh workspace per task) and
+graded by **hidden unit tests the agent never saw**. 14 tasks build a module from a written spec
+(expression parser, JSON parser, regex engine, cron scheduler, Markdown renderer, ...) and 6 fix
+bugs in existing code (multi-file, a threading race + deadlock, date arithmetic). Every hidden
+test suite was first validated against a reference solution.
+
+| | **Ornith-1.5-35B-A3B (this repo)** |
+|---|---:|
+| **Tasks fully solved** | **19 / 20** |
+| **Hidden tests passed** | **202 / 203** (99.5%) |
+| TTFT during agent runs, p50 / p90 / p99 | 1.52 / 2.48 / 3.71 s |
+| Decode, 1 stream / per stream with 8 agents | ~80 / ~26 tok/s |
+| Aggregate decode, 20 streams (38k-token prompts, warm prefix cache) | 344 tok/s |
+| TTFT at 20 streams, warm / cold prefix cache | 6.3 s / 82 s |
+| Tokens consumed (491 requests) | 32.2M prompt + 472k output |
+
+The only miss was the regex engine accepting an empty character class `[]` instead of raising
+`ValueError`. Eight agents ran at a time (each opencode process needs ~600 MB of client RAM);
+the 20-stream TTFT and throughput figures come from a separate load test against the same
+server. TTFT is measured at a local proxy from request sent to first streamed token (reasoning,
+text or tool call), so it includes queueing and prefill. No agent read the hidden tests or
+reference solutions. Qwen3.8 was not being served during this run, so there is no side-by-side
+yet.
+
+Harness, tasks, hidden tests, raw per-request logs and every agent's final code:
+[`benchmarks/agentic_coding/`](benchmarks/agentic_coding/) (see its README to re-run it, e.g. against
+Qwen3.8). Long-form report: [`report_full.png`](benchmarks/agentic_coding/results/report_full.png) ·
+dashboard: [`benchmark_dashboard.png`](benchmarks/agentic_coding/results/benchmark_dashboard.png).
+
 ## Live Monitoring
 
 The server exposes Prometheus metrics at `/metrics`, scraped in the same `vllm` job as the other
@@ -467,6 +502,10 @@ Ornith-1.5_A3B_Model_DGX_Spark_Setup/
 │   ├── knowledge_result_ornith.jsonl # MMLU-Pro per-question records (resume log)
 │   ├── knowledge_result_qwen38.json # baseline, copied from the Qwen3.8 repo
 │   ├── knowledge_comparison.png     # chart
+│   ├── agentic_coding/              # opencode agentic coding benchmark (see its README)
+│   │   ├── harness/                 #   task defs, hidden-test runner, logging proxy, runner, load test, reports
+│   │   ├── tasks/                   #   20 tasks: prompt, starter code, hidden tests, reference solution
+│   │   └── results/                 #   one-page + full report PNGs, metrics, request log, agent solutions
 │   └── make_charts.py               # renders all three PNGs from the JSON results above
 ├── assets/
 │   ├── ornith_logo.png              # from the model card

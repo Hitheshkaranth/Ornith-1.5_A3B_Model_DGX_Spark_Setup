@@ -1,0 +1,106 @@
+{
+ "ornith": {
+  "model": "ornith",
+  "upstream": "http://spark-ba51:8080",
+  "parallel_agents": 8,
+  "solved": 19,
+  "n_tasks": 20,
+  "tests_passed": 202,
+  "tests_total": 203,
+  "mean_pass_rate": 0.99375,
+  "run_wall_s": 3343.7652316093445,
+  "requests": 491,
+  "failed_requests": 0,
+  "ttft_s": {
+   "mean": 1.658111174577608,
+   "p50": 1.5245513916015625,
+   "p90": 2.4753825664520264,
+   "p99": 3.7061037063598645,
+   "max": 7.495884656906128
+  },
+  "decode_tok_s_per_stream": {
+   "mean": 30.385035021856556,
+   "p10": 21.653582528940106,
+   "p50": 25.776711757774713,
+   "p90": 42.68273609083402
+  },
+  "aggregate_output_tok_s": 141.5221074863392,
+  "prompt_tokens": 32176082,
+  "completion_tokens": 472392,
+  "total_tokens": 32648474,
+  "cached_prompt_tokens": null,
+  "peak_inflight": 8,
+  "loadtest": [
+   {
+    "concurrency": 1,
+    "cache": "warm",
+    "n": 1,
+    "errors": 0,
+    "prompt_tokens": 38097,
+    "ttft_p50": 0.8969371318817139,
+    "ttft_max": 0.8969371318817139,
+    "ttft_min": 0.8969371318817139,
+    "per_stream_tok_s_p50": 80.77830314066081,
+    "per_stream_tok_s_min": 80.77830314066081,
+    "aggregate_tok_s": 70.86125300609913,
+    "wall_s": 7.225387334823608
+   },
+   {
+    "concurrency": 8,
+    "cache": "warm",
+    "n": 8,
+    "errors": 0,
+    "prompt_tokens": 38097,
+    "ttft_p50": 4.21987783908844,
+    "ttft_max": 5.1146559715271,
+    "ttft_min": 1.0407040119171143,
+    "per_stream_tok_s_p50": 35.579717241890364,
+    "per_stream_tok_s_min": 29.510783378950688,
+    "aggregate_tok_s": 216.6571795489804,
+    "wall_s": 18.90544319152832
+   },
+   {
+    "concurrency": 20,
+    "cache": "warm",
+    "n": 20,
+    "errors": 0,
+    "prompt_tokens": 38097,
+    "ttft_p50": 6.285339832305908,
+    "ttft_max": 6.340527057647705,
+    "ttft_min": 1.0195422172546387,
+    "per_stream_tok_s_p50": 22.04562053624087,
+    "per_stream_tok_s_min": 18.217430280520073,
+    "aggregate_tok_s": 344.1388600216908,
+    "wall_s": 29.755430698394775
+   },
+   {
+    "concurrency": 1,
+    "cache": "cold",
+    "n": 1,
+    "errors": 0,
+    "prompt_tokens": 38112,
+    "ttft_p50": 7.645231008529663,
+    "ttft_max": 7.645231008529663,
+    "ttft_min": 7.645231008529663,
+    "per_stream_tok_s_p50": 79.49838520999985,
+    "per_stream_tok_s_min": 79.49838520999985,
+    "aggregate_tok_s": 36.37725528630761,
+    "wall_s": 14.074728727340698
+   },
+   {
+    "concurrency": 20,
+    "cache": "cold",
+    "n": 20,
+    "errors": 0,
+    "prompt_tokens": 38112,
+    "ttft_p50": 81.62940979003906,
+    "ttft_max": 154.13438749313354,
+    "ttft_min": 9.128074884414673,
+    "per_stream_tok_s_p50": 5.2698527547611125,
+    "per_stream_tok_s_min": 3.1282234243652627,
+    "aggregate_tok_s": 56.445077040067275,
+    "wall_s": 181.41528964042664
+   }
+  ]
+ }
+}

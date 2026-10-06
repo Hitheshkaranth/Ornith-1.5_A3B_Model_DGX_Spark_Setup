@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ornith Benchmark Poster</title>
+<style>
+/* One 1920x1080 page: three columns - verdict + numbers | every task | speed & tokens. */
+:root {
+  --bg: #fbfbfd; --tile: #f2f2f5; --tile-2: #ffffff; --ink: #1d1d1f; --ink-2: #6e6e73; --ink-3: #8e8e93;
+  --line: #dcdce1; --accent: #0071e3; --accent-soft: rgba(0,113,227,.12); --good: #1f8a3b; --warn: #b25e00; --mark: #2a78d6;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); }
+body { width: 1920px; height: 1080px; overflow: hidden; color: var(--ink); font-family: var(--font); -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
+.page { height: 100%; padding: 44px 52px 30px; display: grid; grid-template-rows: auto 1fr auto; gap: 26px; }
+header { display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; }
+.eyebrow { font-size: 18px; font-weight: 600; color: var(--warn); margin: 0 0 4px; }
+h1 { margin: 0; font-size: 50px; line-height: 1.02; font-weight: 700; letter-spacing: -0.035em; }
+h1 span { color: var(--ink-3); }
+.meta { text-align: right; font-size: 14px; color: var(--ink-2); line-height: 1.5; font-variant-numeric: tabular-nums; }
+.cols { overflow: hidden; display: grid; grid-template-columns: 450px 1fr 640px; gap: 18px; min-height: 0; }
+.col { display: flex; flex-direction: column; gap: 14px; min-height: 0; min-width: 0; }
+.tile { background: var(--tile); border-radius: 24px; padding: 20px 22px; min-width: 0; }
+.k { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.v { font-size: 46px; font-weight: 700; letter-spacing: -0.04em; line-height: 1.05; font-variant-numeric: tabular-nums; margin-top: 2px; }
+.v .u { font-size: 0.42em; font-weight: 600; color: var(--ink-2); letter-spacing: -0.02em; margin-left: 3px; }
+.d { font-size: 12.5px; color: var(--ink-2); margin-top: 4px; line-height: 1.35; }
+.hero { padding: 26px 26px 22px; background: radial-gradient(130% 120% at 0% 0%, var(--accent-soft), transparent 60%), var(--tile); }
+.score { font-size: 168px; font-weight: 700; letter-spacing: -0.065em; line-height: .88; font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, var(--ink) 35%, color-mix(in srgb, var(--accent) 70%, var(--ink)) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.score small { font-size: .3em; -webkit-text-fill-color: var(--ink-2); letter-spacing: -0.03em; }
+.hero .d { font-size: 15px; margin-top: 10px; }
+.hero .d b { color: var(--ink); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.accent .v { color: var(--accent); }
+.method { font-size: 12.5px; color: var(--ink-2); line-height: 1.45; flex: 1; display: flex; flex-direction: column; gap: 7px; }
+.method b { color: var(--ink); font-weight: 600; }
+.method code { font-family: var(--mono); font-size: 11.5px; }
+
+.tasks { padding: 14px 0 6px; flex: 1; display: flex; flex-direction: column; }
+.tasks h3, .panel h3 { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+.tasks h3 { padding: 0 22px 8px; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; flex: 1; }
+th { text-align: left; font-size: 10.5px; font-weight: 600; color: var(--ink-3); text-transform: uppercase; letter-spacing: .07em; padding: 4px 8px 6px; }
+td { padding: 0 7px; height: 35px; border-top: 1px solid var(--line); font-size: 13px; white-space: nowrap; }
+th:first-child, td:first-child { padding-left: 20px; } th:last-child, td:last-child { padding-right: 18px; }
+td.name { font-weight: 600; } td.name span { font-weight: 400; color: var(--ink-3); font-size: 11px; margin-left: 6px; }
+.num { text-align: right; }
+.chip { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
+.chip.medium { background: color-mix(in srgb, var(--ink-2) 14%, transparent); color: var(--ink-2); }
+.chip.hard { background: color-mix(in srgb, var(--warn) 15%, transparent); color: var(--warn); }
+.meter { display: flex; align-items: center; gap: 8px; }
+.meter i { width: 64px; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--ink-3) 25%, transparent); position: relative; overflow: hidden; }
+.meter i::after { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--good); border-radius: 3px; }
+.meter.miss i::after { background: var(--warn); }
+.meter em { font-style: normal; font-size: 12.5px; min-width: 36px; text-align: right; }
+.ok { color: var(--good); font-weight: 600; font-size: 12.5px; } .ok.miss { color: var(--warn); }
+
+.panel { padding: 16px 20px 10px; }
+.panel .sub { font-size: 12px; color: var(--ink-2); margin: 2px 0 4px; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart text { fill: var(--ink-2); font-family: var(--font); }
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+footer { display: flex; justify-content: space-between; gap: 30px; font-size: 12px; color: var(--ink-3); border-top: 1px solid var(--line); padding-top: 12px; }
+footer b { color: var(--ink-2); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <div>
+      <p class="eyebrow">Ornith 1.5 · 35B-A3B · vLLM on spark-ba51</p>
+      <h1>Twenty coding tasks. One agent each. <span>Graded by hidden tests.</span></h1>
+    </div>
+    <div class="meta" id="meta"></div>
+  </header>
+
+  <div class="cols">
+    <div class="col">
+      <div class="tile hero">
+        <div class="k">Tasks fully solved</div>
+        <div class="score" id="score"></div>
+        <div class="d" id="herod"></div>
+      </div>
+      <div class="grid2" id="stats"></div>
+      <div class="tile method">
+        <div><b>Tasks.</b> 20 Python tasks: 14 from a written spec, 6 bug fixes (multi-file, concurrency, dates). 203 hidden <code>unittest</code> cases, all passed by a reference solution first.</div>
+        <div><b>Agents.</b> <code>opencode run</code>, thinking on, fresh workspace per task, 8 agents at a time (~600 MB RAM each). No agent touched the tests or reference solutions.</div>
+        <div><b>Caveat.</b> Served by vLLM, not the Q6 GGUF + Q8 KV setup. Qwen 3.8 27B was offline, so there is no head-to-head yet.</div>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="tile tasks">
+        <h3>Every task, graded</h3>
+        <table id="tt"></table>
+      </div>
+    </div>
+
+    <div class="col">
+      <div class="tile panel">
+        <h3>Time to first token, every agent request</h3>
+        <div class="sub">Up to 8 agents sharing the server. Dashed line is the median.</div>
+        <div class="chart" id="ttft"></div>
+      </div>
+      <div class="duo">
+        <div class="tile panel">
+          <h3>20 streams: TTFT</h3>
+          <div class="sub">38k-token prompt, median seconds</div>
+          <div class="chart" id="lt-ttft"></div>
+        </div>
+        <div class="tile panel">
+          <h3>20 streams: tok/s</h3>
+          <div class="sub">Per stream, total underneath</div>
+          <div class="chart" id="lt-rate"></div>
+        </div>
+      </div>
+      <div class="tile panel" style="flex:1">
+        <h3>Output tokens per task</h3>
+        <div class="sub">Reasoning included</div>
+        <div class="chart" id="outtok"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div id="foot"></div>
+    <div>Hidden tests, proxy timings and load test from the BENCHMARK harness · results/summary.json</div>
+  </footer>
+</div>
+<script>
+const D = /*__DATA__*/null;
+const S = D.summary;
+const $ = (s) => document.querySelector(s);
+const fmt = (n, d = 0) => n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+const nice = (s) => s.replace(/^\d+_/, "").replace(/_/g, " ").replace(/\b(lru|ttl|csv|kv|json)\b/g, (m) => m.toUpperCase());
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const mins = (s) => (s < 60 ? `${fmt(s)} s` : `${fmt(s / 60, 1)} min`);
+const lt = (c, k) => D.loadtest.find((r) => r.concurrency === c && r.cache === k);
+
+$("#score").innerHTML = `${S.solved}<small>/${S.n_tasks}</small>`;
+$("#herod").innerHTML = `<b>${S.tests_passed} of ${S.tests_total}</b> hidden tests passed (${fmt(100 * S.tests_passed / S.tests_total, 1)}%). The only miss: the regex engine accepted an empty class <code style="font-family:var(--mono)">[]</code>.`;
+$("#meta").innerHTML = `${fmt(S.run_wall_s / 60, 1)}-minute run · ${S.requests} model requests<br>${fmt(S.total_tokens / 1e6, 1)}M tokens · October 2026`;
+const stats = [
+  ["accent", "Time to first token", `${fmt(S.ttft_s.p50, 2)}<span class="u">s</span>`, `median · p90 ${fmt(S.ttft_s.p90, 2)} s · p99 ${fmt(S.ttft_s.p99, 2)} s`],
+  ["", "Single stream", `${fmt(lt(1, "warm").per_stream_tok_s_p50)}<span class="u">tok/s</span>`, "decode, server to itself"],
+  ["", "Twenty streams", `${fmt(lt(20, "warm").aggregate_tok_s)}<span class="u">tok/s</span>`, `total · ${fmt(lt(20, "warm").per_stream_tok_s_p50)} tok/s each, warm cache`],
+  ["", "Tokens consumed", `${fmt(S.total_tokens / 1e6, 1)}<span class="u">M</span>`, `${fmt(S.completion_tokens / 1e3)}k generated · ${fmt(S.prompt_tokens / 1e6, 1)}M prompt`],
+];
+$("#stats").innerHTML = stats.map(([c, k, v, d]) => `<div class="tile ${c}"><div class="k">${k}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join("");
+$("#tt").innerHTML = `<thead><tr><th>Task</th><th>Level</th><th>Hidden tests</th><th class="num">Time</th><th class="num">Output</th><th>Result</th></tr></thead><tbody>` +
+  D.tasks.map((t) => { const ok = t.passed === t.tests;
+    return `<tr><td class="name">${nice(t.id)}<span>${t.id.includes("bugfix") ? "bug fix" : ""}</span></td><td><span class="chip ${t.difficulty}">${t.difficulty}</span></td>` +
+      `<td><div class="meter ${ok ? "" : "miss"}" style="--w:${(100 * t.passed / t.tests).toFixed(1)}%"><i></i><em>${t.passed}/${t.tests}</em></div></td>` +
+      `<td class="num">${mins(t.wall)}</td><td class="num">${fmt(t.out / 1000, 1)}k</td><td><span class="ok ${ok ? "" : "miss"}">${ok ? "✓ Solved" : "Partial"}</span></td></tr>`; }).join("") + "</tbody>";
+$("#foot").innerHTML = `<b>Integrity:</b> all 491 tool calls stayed inside each agent's own workspace. <b>Scope:</b> self-contained, well-specified tasks.`;
+
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, a, p) { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; }
+function ticks(max, n = 4) { const raw = max / n, p = 10 ** Math.floor(Math.log10(raw)), m = raw / p;
+  const st = (m <= 1 ? 1 : m <= 2 ? 2 : m <= 2.5 ? 2.5 : m <= 5 ? 5 : 10) * p; const o = []; for (let v = 0; v <= max + 1e-9; v += st) o.push(+v.toFixed(6)); return o; }
+function frame(box, { h, xMax, yMax, xLabel, padL = 34, padB = 30, xTicks }) {
+  const w = box.clientWidth, padT = 8, padR = 8, svg = el("svg", { viewBox: `0 0 ${w} ${h}` }, box);
+  const X = (v) => padL + (v / xMax) * (w - padL - padR), Y = (v) => h - padB - (v / yMax) * (h - padB - padT);
+  ticks(yMax).forEach((v) => { el("line", { x1: padL, x2: w - padR, y1: Y(v), y2: Y(v), stroke: css("--line"), "stroke-dasharray": v ? "2 4" : "" }, svg);
+    el("text", { x: padL - 7, y: Y(v) + 4, "text-anchor": "end", "font-size": 10.5 }, svg).textContent = fmt(v); });
+  if (xTicks !== false) ticks(xMax, 6).forEach((v) => { el("text", { x: X(v), y: h - padB + 15, "text-anchor": "middle", "font-size": 10.5 }, svg).textContent = fmt(v); });
+  if (xLabel) el("text", { x: padL + (w - padL - padR) / 2, y: h - 2, "text-anchor": "middle", "font-size": 10.5, fill: css("--ink-3") }, svg).textContent = xLabel;
+  return { svg, X, Y, w, h, padL, padR, padB, padT };
+}
+(function ttft() {
+  const box = $("#ttft"), pts = D.reqs, xMax = Math.ceil(Math.max(...pts.map((p) => p.t)) / 10) * 10, yMax = Math.ceil(Math.max(...pts.map((p) => p.ttft)));
+  const f = frame(box, { h: 175, xMax, yMax, xLabel: "minutes into the run · seconds to first token" });
+  pts.forEach((p) => el("circle", { cx: f.X(p.t), cy: f.Y(p.ttft), r: 3, fill: css("--mark"), "fill-opacity": .5 }, f.svg));
+  el("line", { x1: f.padL, x2: f.w - f.padR, y1: f.Y(S.ttft_s.p50), y2: f.Y(S.ttft_s.p50), stroke: css("--ink"), "stroke-width": 1.4, "stroke-dasharray": "5 4" }, f.svg);
+  el("text", { x: f.w - f.padR, y: f.Y(S.ttft_s.p50) - 6, "text-anchor": "end", "font-size": 11.5, "font-weight": 600, fill: css("--ink"), stroke: css("--tile"), "stroke-width": 4, "paint-order": "stroke" }, f.svg).textContent = `median ${fmt(S.ttft_s.p50, 2)} s`;
+})();
+function bars(box, items, valueFmt, subFmt) {
+  const yMax = Math.max(...items.map((i) => i.v)) * 1.3, f = frame(box, { h: 165, xMax: 1, yMax, xTicks: false, padB: 34 });
+  const slot = (f.w - f.padL - f.padR) / items.length, bw = Math.min(40, slot * .58);
+  items.forEach((it, i) => { const cx = f.padL + slot * (i + .5), y = f.Y(it.v), y0 = f.Y(0), r = Math.min(4, y0 - y);
+    el("path", { d: `M${cx - bw / 2},${y0}V${y + r}Q${cx - bw / 2},${y} ${cx - bw / 2 + r},${y}H${cx + bw / 2 - r}Q${cx + bw / 2},${y} ${cx + bw / 2},${y + r}V${y0}Z`, fill: css("--mark"), "fill-opacity": it.cold ? .45 : 1 }, f.svg);
+    el("text", { x: cx, y: y - (subFmt ? 17 : 6), "text-anchor": "middle", "font-size": 11.5, "font-weight": 600, fill: css("--ink") }, f.svg).textContent = valueFmt(it);
+    if (subFmt) el("text", { x: cx, y: y - 5, "text-anchor": "middle", "font-size": 9.5 }, f.svg).textContent = subFmt(it);
+    el("text", { x: cx, y: f.h - f.padB + 14, "text-anchor": "middle", "font-size": 10, fill: css("--ink") }, f.svg).textContent = it.a;
+    el("text", { x: cx, y: f.h - f.padB + 27, "text-anchor": "middle", "font-size": 9.5 }, f.svg).textContent = it.b; });
+}
+const sc = [[1, "warm"], [20, "warm"], [20, "cold"]].map(([c, k]) => ({ a: `${c} stream${c > 1 ? "s" : ""}`, b: `${k} cache`, cold: k === "cold", r: lt(c, k) }));
+bars($("#lt-ttft"), sc.map((i) => ({ ...i, v: i.r.ttft_p50 })), (i) => `${fmt(i.v, i.v < 10 ? 1 : 0)} s`);
+bars($("#lt-rate"), sc.map((i) => ({ ...i, v: i.r.per_stream_tok_s_p50 })), (i) => fmt(i.v), (i) => `${fmt(i.r.aggregate_tok_s)} total`);
+(function tokens() {
+  const box = $("#outtok"), ts = [...D.tasks].sort((a, b) => b.out - a.out), w = box.clientWidth, row = 11.4, padL = 140, padR = 46, h = ts.length * row + 2;
+  const svg = el("svg", { viewBox: `0 0 ${w} ${h}` }, box), X = (v) => padL + (v / ts[0].out) * (w - padL - padR);
+  ts.forEach((t, i) => { const y = i * row + 1, bh = 7.8, x1 = X(t.out);
+    el("text", { x: padL - 8, y: y + 8, "text-anchor": "end", "font-size": 10.5, fill: css("--ink") }, svg).textContent = nice(t.id);
+    el("rect", { x: padL, y, width: x1 - padL, height: bh, rx: 3, fill: css("--mark") }, svg);
+    el("text", { x: x1 + 6, y: y + 8, "font-size": 10 }, svg).textContent = `${fmt(t.out / 1000, 1)}k`; });
+})();
+</script>
+</body>
+</html>
